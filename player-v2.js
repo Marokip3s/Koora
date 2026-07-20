@@ -309,7 +309,6 @@ Player.load = function(server){
     this.showLoading(); 
 
     const originalUrl = server.url.trim();
-   alert(originalUrl);
     const url = originalUrl.toLowerCase();
 
     if(this.video){
@@ -426,40 +425,11 @@ Player.loadHLS = function (url) {
 
         this.hls.on(Hls.Events.ERROR, (event, data) => {
 
-            console.log(data);
+    console.log("HLS ERROR:", data);
 
-            if (!data.fatal) return;
+    alert(JSON.stringify(data));
 
-            switch (data.type) {
-
-                case Hls.ErrorTypes.NETWORK_ERROR:
-
-                    console.log("Retry Network");
-
-                    this.hls.startLoad();
-
-                    break;
-
-                case Hls.ErrorTypes.MEDIA_ERROR:
-
-                    console.log("Recover Media");
-
-                    this.hls.recoverMediaError();
-
-                    break;
-
-                default:
-
-                    this.retry();
-
-            }
-
-        });
-
-        return;
-
-    }
-
+});
     if (this.video.canPlayType("application/vnd.apple.mpegurl")) {
 
         this.video.src = url;
