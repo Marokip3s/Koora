@@ -309,6 +309,7 @@ Player.load = function(server){
     this.showLoading(); 
 
     const originalUrl = server.url.trim();
+   alert(originalUrl);
     const url = originalUrl.toLowerCase();
 
     if(this.video){
