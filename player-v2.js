@@ -453,7 +453,7 @@ Player.loadHLS = function (url) {
 
             }
 
-        });
+        }
 
         return;
 
