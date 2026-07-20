@@ -425,11 +425,40 @@ Player.loadHLS = function (url) {
 
         this.hls.on(Hls.Events.ERROR, (event, data) => {
 
-    console.log("HLS ERROR:", data);
+            console.log(data);
 
-    alert(JSON.stringify(data));
+            if (!data.fatal) return;
 
-});
+            switch (data.type) {
+
+                case Hls.ErrorTypes.NETWORK_ERROR:
+
+                    console.log("Retry Network");
+
+                    this.hls.startLoad();
+
+                    break;
+
+                case Hls.ErrorTypes.MEDIA_ERROR:
+
+                    console.log("Recover Media");
+
+                    this.hls.recoverMediaError();
+
+                    break;
+
+                default:
+
+                    this.retry();
+
+            }
+
+        });
+
+        return;
+
+    }
+
     if (this.video.canPlayType("application/vnd.apple.mpegurl")) {
 
         this.video.src = url;
