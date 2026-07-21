@@ -553,6 +553,10 @@ function updateCounters(){
 
 function openPlayer(matchId){
 
+   alert("openPlayer");
+
+    console.log(matchId);
+   
     App.currentMatch = App.matches.find(
 
         m=>Number(m.id)===Number(matchId)
