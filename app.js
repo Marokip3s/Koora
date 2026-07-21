@@ -44,7 +44,7 @@ INIT
 document.addEventListener("DOMContentLoaded", initApp);
 
 async function initApp(){
-
+alert("initApp");
     try{
 
         showLoading();
