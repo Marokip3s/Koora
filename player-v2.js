@@ -170,13 +170,18 @@ Player.bindEvents = function () {
 ========================================== */
 
 Player.open = function () {
-  
+
+    alert("A");
+
     this.init();
+
+    alert("modal = " + (this.modal ? "OK" : "NULL"));
 
     this.modal.classList.add("show");
 
-};
+    alert("B");
 
+};
 /* ==========================================
    CLOSE
 ========================================== */
