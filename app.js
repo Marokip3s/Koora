@@ -1,10 +1,12 @@
-/* ==================================================
+/* ==========================================
    MAROKIP3S APP
-================================================== */
+   PART 1
+   APP + INIT
+========================================== */
 
 const App = {
 
-    data: {},
+    data: null,
 
     matches: [],
 
@@ -18,34 +20,27 @@ const App = {
 
     currentServers: [],
 
-    currentServer: null,
-
-    loading: false
+    currentServer: null
 
 };
 
-/* ==================================================
-DOM HELPERS
-================================================== */
+/* ==========================================
+   DOM
+========================================== */
 
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
-const $$ = selector => document.querySelectorAll(selector);
+const $$ = (selector) => document.querySelectorAll(selector);
 
-/* ==================================================
-ROUTER
-================================================== */
-
-}
-/* ==================================================
-INIT
-================================================== */
+/* ==========================================
+   INIT
+========================================== */
 
 document.addEventListener("DOMContentLoaded", initApp);
 
-async function initApp(){
-alert("initApp");
-    try{
+async function initApp() {
+
+    try {
 
         showLoading();
 
@@ -58,82 +53,94 @@ alert("initApp");
         updateCounters();
 
         bindEvents();
-      
-        hideLoading();
 
     }
 
-    catch(err){
+    catch (err) {
 
         console.error(err);
 
-        hideLoading();
+        showToast("تعذر تحميل البيانات", "error");
 
-        showToast(
-            "تعذر تحميل البيانات",
-            "error"
-        );
+    }
+
+    finally {
+
+        hideLoading();
 
     }
 
 }
 
-/* ==================================================
-LOAD DATA
-================================================== */
+/* ==========================================
+   LOAD DATA
+========================================== */
 
-async function loadData(){
+async function loadData() {
 
-    const data = await API.getData();
+    const response = await API.getData();
 
-    App.data = data;
+    App.data = response;
 
-    App.matches = data.matches || [];
+    App.matches = Array.isArray(response.matches)
+        ? response.matches
+        : [];
 
+    App.competitions = Array.isArray(response.competitions)
+        ? response.competitions
+        : [];
 
-    App.competitions = data.competitions || [];
+    App.teams = Array.isArray(response.teams)
+        ? response.teams
+        : [];
 
-    App.teams = data.teams || [];
+    App.servers = Array.isArray(response.servers)
+        ? response.servers
+        : [];
 
-    App.servers = data.servers || [];
+    console.log(
+        "Loaded:",
+        App.matches.length,
+        "matches"
+    );
 
-}
+       }
+/* ==========================================
+   PART 2
+   HELPERS
+========================================== */
 
-/* ==================================================
-HELPERS
-================================================== */
+function getCompetition(id) {
 
-function getCompetition(id){
+    return App.competitions.find(
 
-    return App.competitions.find(item=>
-
-        Number(item.id)===Number(id)
+        item => Number(item.id) === Number(id)
 
     ) || null;
 
 }
 
-function getTeam(id){
+function getTeam(id) {
 
-    return App.teams.find(item=>
+    return App.teams.find(
 
-        Number(item.id)===Number(id)
+        item => Number(item.id) === Number(id)
 
     ) || null;
 
 }
 
-function getServers(matchId){
+function getServers(matchId) {
 
-    return App.servers.filter(server=>
+    return App.servers.filter(
 
-        Number(server.match_id)===Number(matchId)
+        item => Number(item.match_id) === Number(matchId)
 
     );
 
 }
 
-function getMatchStatus(match){
+function getMatchStatus(match) {
 
     const status = String(
 
@@ -141,120 +148,115 @@ function getMatchStatus(match){
 
     ).toLowerCase();
 
-    if(status==="live")
+    switch (status) {
 
-        return "live";
+        case "live":
+            return "live";
 
-    if(status==="finished")
+        case "finished":
+            return "finished";
 
-        return "finished";
+        default:
+            return "upcoming";
 
-    return "upcoming";
+    }
 
 }
 
-/* ==================================================
-FORMAT DATE
-================================================== */
+/* ==========================================
+   DATE & TIME
+========================================== */
 
-function formatTime(dateString){
+function formatTime(dateString) {
 
-    if(!dateString)
-
-        return "--:--";
+    if (!dateString) return "--:--";
 
     const date = new Date(dateString);
 
-    return date.toLocaleTimeString(
+    return date.toLocaleTimeString([], {
 
-        [],
+        hour: "2-digit",
 
-        {
+        minute: "2-digit"
 
-            hour:"2-digit",
-
-            minute:"2-digit"
-
-        }
-
-    );
+    });
 
 }
 
-function formatDate(dateString){
+function formatDate(dateString) {
 
-    if(!dateString)
+    if (!dateString) return "";
 
-        return "";
+    return new Date(dateString)
 
-    const date = new Date(dateString);
-
-    return date.toLocaleDateString();
+        .toLocaleDateString();
 
 }
 
-/* ==================================================
-ESCAPE HTML
-================================================== */
+/* ==========================================
+   HTML ESCAPE
+========================================== */
 
-function escapeHtml(text){
+function escapeHtml(text) {
 
-    if(!text)
+    if (text === null || text === undefined)
 
         return "";
 
     return String(text)
 
-    .replace(/&/g,"&amp;")
+        .replace(/&/g, "&amp;")
 
-    .replace(/</g,"&lt;")
+        .replace(/</g, "&lt;")
 
-    .replace(/>/g,"&gt;")
+        .replace(/>/g, "&gt;")
 
-    .replace(/"/g,"&quot;")
+        .replace(/"/g, "&quot;")
 
-    .replace(/'/g,"&#039;");
+        .replace(/'/g, "&#039;");
 
-}
-/* ==================================================
+           }
+/* ==========================================
+   PART 3
    COMPETITIONS
-================================================== */
+========================================== */
 
-function renderCompetitions(){
+function renderCompetitions() {
 
     const container = $("competitionList");
 
-    if(!container) return;
+    if (!container) return;
 
     container.innerHTML = "";
 
-    // زر جميع المباريات
-    const all = document.createElement("button");
+    // جميع البطولات
+    const allButton = document.createElement("button");
 
-    all.className = "competition-card active";
+    allButton.className = "competition-card active";
 
-    all.innerHTML = `
+    allButton.innerHTML = `
         <span>🌍</span>
         <span>جميع البطولات</span>
     `;
 
-    all.onclick = () => {
+    allButton.onclick = () => {
 
-        $$(".competition-card").forEach(c=>{
+        $$(".competition-card").forEach(card => {
 
-            c.classList.remove("active");
+            card.classList.remove("active");
 
         });
 
-        all.classList.add("active");
+        allButton.classList.add("active");
 
         renderMatches(App.matches);
 
     };
 
-    container.appendChild(all);
+    container.appendChild(allButton);
 
-    App.competitions.forEach(comp=>{
+    // البطولات
+    App.competitions.forEach(comp => {
 
         container.appendChild(
 
@@ -266,19 +268,22 @@ function renderCompetitions(){
 
 }
 
+/* ==========================================
+   CREATE CARD
+========================================== */
 
-function createCompetitionCard(comp){
+function createCompetitionCard(comp) {
 
-    const card = document.createElement("button");
+    const button = document.createElement("button");
 
-    card.className = "competition-card";
+    button.className = "competition-card";
 
-    card.dataset.id = comp.id;
+    button.dataset.id = comp.id;
 
-    card.innerHTML = `
+    button.innerHTML = `
 
         <img
-            src="${comp.logo}"
+            src="${comp.logo || ""}"
             alt="${escapeHtml(comp.name)}">
 
         <span>
@@ -289,57 +294,73 @@ function createCompetitionCard(comp){
 
     `;
 
-    card.onclick = ()=>{
+    button.onclick = () => {
 
-        $$(".competition-card").forEach(c=>{
+        $$(".competition-card").forEach(card => {
 
-            c.classList.remove("active");
+            card.classList.remove("active");
 
         });
 
-        card.classList.add("active");
+        button.classList.add("active");
 
-        const list = App.matches.filter(match=>
+        const matches = App.matches.filter(match =>
 
-            Number(match.competition_id)===Number(comp.id)
+            Number(match.competition_id) === Number(comp.id)
 
         );
 
-        renderMatches(list);
+        renderMatches(matches);
 
     };
 
-    return card;
+    return button;
 
 }
 
-/* ==================================================
-   MATCHES
-================================================== */
+    if ($("liveCount")) {
 
-function renderMatches(matches){
+        $("liveCount").textContent = live;
+
+    }
+
+    if ($("upcomingCount")) {
+
+        $("upcomingCount").textContent = upcoming;
+
+    }
+
+    if ($("finishedCount")) {
+
+        $("finishedCount").textContent = finished;
+
+    }
+
+    }
+/* ==========================================
+   PART 4
+   MATCHES
+========================================== */
+
+function renderMatches(matches) {
 
     const container = $("matchesGrid");
 
-    if(!container) return;
+    if (!container) return;
 
     container.innerHTML = "";
 
-    if(matches.length===0){
+    if (!Array.isArray(matches) || matches.length === 0) {
 
-        container.innerHTML=`
+        container.innerHTML = `
 
-        <div class="state-box">
+            <div class="state-box">
 
-            <i class="fa-solid fa-calendar-xmark"></i>
+                <i class="fa-solid fa-calendar-xmark"></i>
 
-            <p>
+                <p>لا توجد مباريات</p>
 
-                لا توجد مباريات
-
-            </p>
-
-        </div>
+            </div>
 
         `;
 
@@ -347,125 +368,172 @@ function renderMatches(matches){
 
     }
 
-    matches.forEach(match=>{
+    const html = matches.map(match =>
 
-        container.innerHTML +=
+        createMatchCard(match)
 
-        createMatchCard(match);
+    ).join("");
 
-    });
+    container.innerHTML = html;
 
 }
 
-/* ==================================================
+/* ==========================================
    MATCH CARD
-================================================== */
+========================================== */
 
-function createMatchCard(match){
+function createMatchCard(match) {
 
     const home = getTeam(match.team1_id);
+
     const away = getTeam(match.team2_id);
+
     const competition = getCompetition(match.competition_id);
 
     const status = getMatchStatus(match);
 
     let badge = "";
 
-    if(status==="live"){
-    badge='<span class="live-badge-card live">🔴 مباشر</span>';
-}else if(status==="upcoming"){
-    badge='<span class="live-badge-card upcoming">🕒 قادمة</span>';
-}else{
-    badge='<span class="live-badge-card finished">✓ انتهت</span>';
+    switch (status) {
+
+        case "live":
+
+            badge = `
+                <span class="live-badge-card live">
+                    🔴 مباشر
+                </span>
+            `;
+
+            break;
+
+        case "finished":
+
+            badge = `
+                <span class="live-badge-card finished">
+                    ✓ انتهت
+                </span>
+            `;
+
+            break;
+
+        default:
+
+            badge = `
+                <span class="live-badge-card upcoming">
+                    🕒 قادمة
+                </span>
+            `;
+
     }
 
     return `
 
 <div class="match-card">
 
-<div class="match-header">
+    <div class="match-header">
 
-<div class="match-header-left">
+        <div class="match-header-left">
 
-${badge}
+            ${badge}
 
-</div>
+        </div>
 
-<div class="match-header-right">
+        <div class="match-header-right">
 
-<img
-class="competition-logo"
-src="${competition?.logo || ""}"
-alt="">
+            <img
+                class="competition-logo"
+                src="${competition?.logo || ""}"
+                alt="">
 
-<span class="competition-name">
-${competition?.name || ""}
-</span>
+            <span class="competition-name">
 
-</div>
+                ${competition?.name || ""}
 
-</div>
+            </span>
 
-<div class="match-body">
+        </div>
 
-<div class="team">
+    </div>
 
-<img src="${home?.logo || ""}" alt="">
+    <div class="match-body">
 
-<span>${home?.name || ""}</span>
+        <div class="team">
 
-</div>
+            <img
+                src="${home?.logo || ""}"
+                alt="">
 
-<div class="match-center">
+            <span>
 
-<div class="match-time">
-${formatTime(match.start_time)}
-</div>
+                ${home?.name || ""}
 
-<div class="match-date">
-${formatDate(match.start_time)}
-</div>
+            </span>
 
-</div>
+        </div>
 
-<div class="team">
+        <div class="match-center">
 
-<img src="${away?.logo || ""}" alt="">
+            <div class="match-time">
 
-<span>${away?.name || ""}</span>
+                ${formatTime(match.start_time)}
 
-</div>
+            </div>
 
-</div>
+            <div class="match-date">
 
-<div class="match-footer">
+                ${formatDate(match.start_time)}
 
-<button
-class="watch-btn"
-onclick="openPlayer(${match.id})">
+            </div>
 
-<i class="fa-solid fa-play"></i>
+        </div>
 
-مشاهدة
+        <div class="team">
 
-</button>
+            <img
+                src="${away?.logo || ""}"
+                alt="">
 
-</div>
+            <span>
+
+                ${away?.name || ""}
+
+            </span>
+
+        </div>
+
+    </div>
+
+    <div class="match-footer">
+
+        <button
+            class="watch-btn"
+            onclick="openPlayer(${match.id})">
+
+            <i class="fa-solid fa-play"></i>
+
+            مشاهدة
+
+        </button>
+
+    </div>
 
 </div>
 
 `;
 
-}
-/* ==================================================
+       }
+/* ==========================================
+   PART 5
    SEARCH
-================================================== */
+========================================== */
 
-function searchMatches(keyword){
+function searchMatches(keyword) {
 
-    keyword = keyword.trim().toLowerCase();
+    keyword = String(keyword || "")
+        .trim()
+        .toLowerCase();
 
-    if(!keyword){
+    if (!keyword) {
 
         renderMatches(App.matches);
 
@@ -473,206 +541,189 @@ function searchMatches(keyword){
 
     }
 
-    const result = App.matches.filter(match=>{
+    const results = App.matches.filter(match => {
 
         const home = getTeam(match.team1_id);
 
         const away = getTeam(match.team2_id);
 
-        const comp = getCompetition(match.competition_id);
+        const competition = getCompetition(match.competition_id);
 
-        return(
+        return (
 
             (home?.name || "")
-            .toLowerCase()
-            .includes(keyword)
+                .toLowerCase()
+                .includes(keyword)
 
             ||
 
             (away?.name || "")
-            .toLowerCase()
-            .includes(keyword)
+                .toLowerCase()
+                .includes(keyword)
 
             ||
 
-            (comp?.name || "")
-            .toLowerCase()
-            .includes(keyword)
+            (competition?.name || "")
+                .toLowerCase()
+                .includes(keyword)
 
         );
 
     });
 
-    renderMatches(result);
+    renderMatches(results);
 
 }
 
-/* ==================================================
+/* ==========================================
    COUNTERS
-================================================== */
+========================================== */
 
-function updateCounters(){
+function updateCounters() {
 
     let live = 0;
-
     let upcoming = 0;
-
     let finished = 0;
 
-    App.matches.forEach(match=>{
+    App.matches.forEach(match => {
 
-        switch(getMatchStatus(match)){
+        switch (getMatchStatus(match)) {
 
             case "live":
-
                 live++;
-
-            break;
+                break;
 
             case "finished":
-
                 finished++;
-
-            break;
+                break;
 
             default:
-
                 upcoming++;
+                break;
 
         }
 
     });
 
-    if($("liveCount"))
+    if ($("liveCount")) {
+
         $("liveCount").textContent = live;
 
-    if($("upcomingCount"))
+    }
+
+    if ($("upcomingCount")) {
+
         $("upcomingCount").textContent = upcoming;
 
-    if($("finishedCount"))
+    }
+
+    if ($("finishedCount")) {
+
         $("finishedCount").textContent = finished;
 
-}
+    }
 
-/* ==================================================
+           }
+/* ==========================================
+   PART 6
    PLAYER
-================================================== */
+========================================== */
 
-function openPlayer(matchId){
+function openPlayer(matchId) {
 
-    App.currentMatch = App.matches.find(
+    const match = App.matches.find(
 
-        m=>Number(m.id)===Number(matchId)
+        item => Number(item.id) === Number(matchId)
 
     );
 
-    if(!App.currentMatch){
+    if (!match) {
 
-        showToast(
-
-            "المباراة غير موجودة",
-
-            "error"
-
-        );
+        showToast("المباراة غير موجودة", "error");
 
         return;
 
     }
 
-    App.currentServers = getServers(matchId);
+    const servers = getServers(matchId);
 
-    if(App.currentServers.length===0){
+    if (servers.length === 0) {
 
-        showToast(
-
-            "لا توجد سيرفرات",
-
-            "error"
-
-        );
+        showToast("لا توجد سيرفرات", "error");
 
         return;
 
     }
 
-    Player.open();
+    App.currentMatch = match;
 
-    const home = getTeam(App.currentMatch.team1_id);
+    App.currentServers = servers;
 
-    const away = getTeam(App.currentMatch.team2_id);
+    App.currentServer = servers[0];
 
-    const comp = getCompetition(App.currentMatch.competition_id);
+    const home = getTeam(match.team1_id);
 
-    $("playerTitle").textContent =
+    const away = getTeam(match.team2_id);
 
-        `${home?.name || ""} VS ${away?.name || ""}`;
+    const competition = getCompetition(match.competition_id);
 
-    $("playerSubtitle").textContent =
+    if ($("playerTitle")) {
 
-        comp?.name || "";
+        $("playerTitle").textContent =
 
-    if($("playerCompetitionLogo")){
+            `${home?.name || ""} VS ${away?.name || ""}`;
+
+    }
+
+    if ($("playerSubtitle")) {
+
+        $("playerSubtitle").textContent =
+
+            competition?.name || "";
+
+    }
+
+    if ($("playerCompetitionLogo")) {
 
         $("playerCompetitionLogo").src =
 
-        comp?.logo || "";
+            competition?.logo || "";
 
     }
 
+    Player.serverList = servers;
+
     renderServers();
 
-    playServer(
+    Player.open();
 
-        App.currentServers[0]
-
-    );
+    Player.load(servers[0]);
 
 }
 
-/* ==================================================
-   CLOSE PLAYER
-================================================== */
-
-function closePlayer(){
-
-    $("playerModal")
-
-    ?.classList
-
-    .remove("show");
-
-    if(typeof stopPlayer==="function")
-
-        stopPlayer();
-
-}
-
-/* ==================================================
+/* ==========================================
    SERVERS
-================================================== */
+========================================== */
 
-function renderServers(){
+function renderServers() {
 
     const container = $("serverList");
 
-    if(!container)
-
-        return;
+    if (!container) return;
 
     container.innerHTML = "";
 
-    App.currentServers.forEach((server,index)=>{
+    App.currentServers.forEach((server, index) => {
 
-        const btn = document.createElement("button");
+        const button = document.createElement("button");
 
-        btn.className = "server-item";
+        button.className =
 
-        if(index===0)
+            "server-item" +
 
-            btn.classList.add("active");
+            (index === 0 ? " active" : "");
 
-        btn.innerHTML = `
+        button.innerHTML = `
 
             <span>
 
@@ -682,85 +733,71 @@ function renderServers(){
 
             <small>
 
-                ${server.quality}
+                ${escapeHtml(server.quality || "")}
 
             </small>
 
         `;
 
-        btn.onclick = ()=>{
+        button.onclick = () => {
 
-            document
+            document.querySelectorAll(".server-item")
 
-            .querySelectorAll(".server-item")
+                .forEach(item => {
 
-            .forEach(item=>{
+                    item.classList.remove("active");
 
-                item.classList.remove("active");
+                });
 
-            });
+            button.classList.add("active");
 
-            btn.classList.add("active");
+            App.currentServer = server;
 
-            playServer(server);
+            Player.load(server);
 
         };
 
-        container.appendChild(btn);
+        container.appendChild(button);
 
     });
 
 }
 
-/* ==================================================
-   PLAY SERVER
-================================================== */
+/* ==========================================
+   CLOSE PLAYER
+========================================== */
 
-function playServer(server){
+function closePlayer() {
 
-    App.currentServer = server;
+    Player.close();
 
-    if(typeof Player==="undefined"){
+           }
+/* ==========================================
+   PART 7
+   UI + EVENTS + AUTO REFRESH
+========================================== */
 
-        console.error("Player.js غير محمل");
-
-        return;
-
-    }
-
-    // إرسال جميع السيرفرات للمشغل
-    Player.serverList = App.currentServers;
-
-    Player.load(server);
-
-}
-/* ==================================================
+/* ==========================================
    LOADING
-================================================== */
+========================================== */
 
 function showLoading() {
 
-    const loading = $("loadingScreen");
-
-    if (loading) {
-        loading.classList.add("show");
-    }
+    $("loadingScreen")?.classList.add("show");
 
 }
 
 function hideLoading() {
 
-    const loading = $("loadingScreen");
-
-    if (loading) {
-        loading.classList.remove("show");
-    }
+    $("loadingScreen")?.classList.remove("show");
 
 }
 
-/* ==================================================
+/* ==========================================
    TOAST
-================================================== */
+========================================== */
+
+let toastTimer = null;
 
 function showToast(message, type = "success") {
 
@@ -768,17 +805,23 @@ function showToast(message, type = "success") {
 
     if (!toast) return;
 
-    toast.textContent = message;
+    const text = $("toastText");
 
-    toast.className = "toast";
+    if (text) {
 
-    toast.classList.add(type);
+        text.textContent = message;
 
-    toast.classList.add("show");
+    } else {
 
-    clearTimeout(toast.timer);
+        toast.textContent = message;
 
-    toast.timer = setTimeout(() => {
+    }
+
+    toast.className = `toast ${type} show`;
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(() => {
 
         toast.classList.remove("show");
 
@@ -786,13 +829,12 @@ function showToast(message, type = "success") {
 
 }
 
-/* ==================================================
+/* ==========================================
    EVENTS
-================================================== */
+========================================== */
 
 function bindEvents() {
 
-    // Search
     const search = $("searchInput");
 
     if (search) {
@@ -805,7 +847,6 @@ function bindEvents() {
 
     }
 
-    // Close player button
     const closeBtn = $("closePlayer");
 
     if (closeBtn) {
@@ -814,7 +855,6 @@ function bindEvents() {
 
     }
 
-    // Close modal when clicking outside
     const modal = $("playerModal");
 
     if (modal) {
@@ -831,7 +871,6 @@ function bindEvents() {
 
     }
 
-    // ESC key
     document.addEventListener("keydown", e => {
 
         if (e.key === "Escape") {
@@ -842,14 +881,12 @@ function bindEvents() {
 
     });
 
-    // Online
     window.addEventListener("online", () => {
 
-        showToast("تم استرجاع الاتصال بالإنترنت", "success");
+        showToast("تم استرجاع الاتصال", "success");
 
     });
 
-    // Offline
     window.addEventListener("offline", () => {
 
         showToast("لا يوجد اتصال بالإنترنت", "error");
@@ -858,29 +895,21 @@ function bindEvents() {
 
 }
 
-/* ==================================================
+/* ==========================================
    AUTO REFRESH
-================================================== */
+========================================== */
 
-setInterval(async () => {
+async function refreshData() {
 
     try {
 
-        const data = await API.getData();
+        await loadData();
 
-        App.data = data;
-
-        App.matches = data.matches || [];
-
-        App.competitions = data.competitions || [];
-
-        App.teams = data.teams || [];
-
-        App.servers = data.servers || [];
-
-        updateCounters();
+        renderCompetitions();
 
         renderMatches(App.matches);
+
+        updateCounters();
 
     }
 
@@ -890,8 +919,10 @@ setInterval(async () => {
 
     }
 
-}, 60000);
+}
 
-/* ==================================================
-   END
-================================================== */
+setInterval(refreshData, 60000);
+
+/* ==========================================
+   END APP
+========================================== */
