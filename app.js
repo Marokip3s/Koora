@@ -36,31 +36,6 @@ const $$ = selector => document.querySelectorAll(selector);
 ROUTER
 ================================================== */
 
-window.addEventListener("hashchange", router);
-
-function router(){
-
-    const hash = window.location.hash || "#/";
-
-    $("homePage").style.display = "none";
-    $("competitionPage").style.display = "none";
-
-    if(hash === "#/"){
-
-        $("homePage").style.display = "block";
-
-        return;
-
-    }
-
-    if(hash.startsWith("#/competition/")){
-
-        $("competitionPage").style.display = "block";
-
-        return;
-
-    }
-
 }
 /* ==================================================
 INIT
@@ -83,8 +58,6 @@ async function initApp(){
         updateCounters();
 
         bindEvents();
-
-        router();
       
         hideLoading();
 
