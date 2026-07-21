@@ -553,14 +553,13 @@ function updateCounters(){
 
 function openPlayer(matchId){
 
-   alert("openPlayer");
-
-    console.log(matchId);
+   alert("1");
    
     App.currentMatch = App.matches.find(
 
         m=>Number(m.id)===Number(matchId)
-
+  alert("2");
+   
     );
 
     if(!App.currentMatch){
@@ -594,6 +593,8 @@ function openPlayer(matchId){
     }
 
     Player.open();
+
+  alert("3");
 
     const home = getTeam(App.currentMatch.team1_id);
 
