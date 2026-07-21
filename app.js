@@ -89,7 +89,7 @@ async function loadData(){
     App.data = data;
 
     App.matches = data.matches || [];
-alert("Matches: " + App.matches.length);
+
 
     App.competitions = data.competitions || [];
 
