@@ -553,81 +553,53 @@ function updateCounters(){
 
 function openPlayer(matchId){
 
-   alert("1");
-   
-    App.currentMatch = App.matches.find(
+    alert("1");
 
-        m=>Number(m.id)===Number(matchId)
-  alert("2");
-   
+    App.currentMatch = App.matches.find(
+        m => Number(m.id) === Number(matchId)
     );
 
+    alert("2");
+
     if(!App.currentMatch){
-
-        showToast(
-
-            "المباراة غير موجودة",
-
-            "error"
-
-        );
-
+        alert("No Match");
         return;
-
     }
 
     App.currentServers = getServers(matchId);
 
+    alert("Servers: " + App.currentServers.length);
+
     if(App.currentServers.length===0){
-
-        showToast(
-
-            "لا توجد سيرفرات",
-
-            "error"
-
-        );
-
+        alert("No Servers");
         return;
-
     }
+
+    alert("Before Player.open");
 
     Player.open();
 
-  alert("3");
+    alert("After Player.open");
 
     const home = getTeam(App.currentMatch.team1_id);
-
     const away = getTeam(App.currentMatch.team2_id);
-
     const comp = getCompetition(App.currentMatch.competition_id);
 
     $("playerTitle").textContent =
-
         `${home?.name || ""} VS ${away?.name || ""}`;
 
     $("playerSubtitle").textContent =
-
         comp?.name || "";
 
     if($("playerCompetitionLogo")){
-
         $("playerCompetitionLogo").src =
-
         comp?.logo || "";
-
     }
 
     renderServers();
 
-    playServer(
-
-        App.currentServers[0]
-
-    );
-
+    playServer(App.currentServers[0]);
 }
-
 /* ==================================================
    CLOSE PLAYER
 ================================================== */
