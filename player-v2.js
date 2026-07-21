@@ -171,16 +171,18 @@ Player.bindEvents = function () {
 
 Player.open = function () {
 
-    alert("A");
-
     this.init();
 
-    alert("modal = " + (this.modal ? "OK" : "NULL"));
+    console.log("Modal:", this.modal);
+
+    if (!this.modal) {
+        alert("playerModal NOT FOUND");
+        return;
+    }
 
     this.modal.classList.add("show");
 
-    alert("B");
-
+    alert("Player Opened");
 };
 /* ==========================================
    CLOSE
