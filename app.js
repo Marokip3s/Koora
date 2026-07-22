@@ -40,12 +40,16 @@ document.addEventListener("DOMContentLoaded", initApp);
 
 async function initApp() {
 
+   console.log("initApp started");
+   
     try {
 
         showLoading();
 
         await loadData();
 
+       console.log(App);
+       
         renderCompetitions();
 
         renderMatches(App.matches);
